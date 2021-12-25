@@ -8,7 +8,7 @@ You could run a single serial device as follows:
 from serialio import SerialEmitter
 
 
-serial = SerialEmitter(port='/dev/cu.usbserial-1460', baudrate='9600')
+serial = SerialEmitter(port='/dev/cu.usbserial-1460', baudrate='9600', timeout=0.25)
 
 # Do something if the connection status changes
 serial.on('connection-status', lambda status: print('serial port is open: ', status))
@@ -29,7 +29,7 @@ Also multiples serial devices cool be manage at the same time:
 from serialio import SerialManager
 
 
-serial = SerialManager(devices=['/dev/cu.usbserial-1460'], baudrate=9600)
+serial = SerialManager(devices=['/dev/cu.usbserial-1460'], baudrate=9600, timeout=0.25)
 
 # Do something if the connection status changes
 serial.on('connection-status', lambda device, status: print(f'{device} connection status: {status}'))

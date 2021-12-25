@@ -65,15 +65,18 @@ class SerialEmitter(Emitter):
         except Exception as e:
             print('connection error: ',e)
 
-    def write(self, message:str):
+    def write(self, message:str='', end='\n'):
         """It writes a message to the serial device.
 
         :param message: string to be sent.
+        :param end: newline character to be concated with the message.
         """
         if self.serial.isOpen():
             try:
-                message = message.encode()
-                self.serial.write(message)
+                if len(message) > 0:
+                    message += end
+                    message = message.encode()
+                    self.serial.write(message)
             except Exception as e:
                 print('Write error: ', e)
 
@@ -141,18 +144,29 @@ class SerialEmitter(Emitter):
 
 
 class SerialManager:
-    def __init__(self, devices=[], *args, **kwargs):
+    """A class for manage multiple serial device at the same time.
+
+    :param devices: a list of serial devices to be controled.
+    """
+    def __init__(self, devices:list=[], *args, **kwargs):
+        devices = list(set(devices))
         self.devices = [SerialEmitter(port=name, *args, **kwargs) for name in devices]
         
     def __len__(self):
         return len(self.devices)
 
     def hasDevices(self):
+        """It checks if there is some serial device on list."""
         return len(self.devices) > 0
 
-    def setDevices(self, devices = [], *args, **kwargs):
+    def setDevices(self, devices:list=[], *args, **kwargs):
+        """It updates the current serial devices list.
+        
+        :param devices: serial devices list.
+        """
         if self.hasDevices():
             self.stopAll()
+        devices = list(set(devices))
         self.devices = [SerialEmitter(port=name, *args, **kwargs) for name in devices]
 
     def startAll(self):
@@ -160,7 +174,7 @@ class SerialManager:
         for device in self.devices:
             device.start()
 
-    def startOnly(self, name='default'):
+    def startOnly(self, name:str='default'):
         """It starts only one specific serial device.
         
         :param name: device name.
@@ -189,7 +203,25 @@ class SerialManager:
         """It returns a list with the availables serial port devices."""
         return [port.device for port in list_ports.comports()]
 
+    def write(self, to:str='default', message:str='', end:str='\n'):
+        """It writes a message to a specific serial device.
+        
+        :param to: name of the serial device.
+        :param message: message to be written.
+        :param end: newline character to be concated with the message.
+        """
+        for device in self.devices:
+            if device.getPort() == to:
+                device.write(message=message, end='\n')
+                break
+
     def on(self, eventName: str="", callback=None, *args, **kwargs):
+        """A wrapper function for use on/emit functions. It defines a specific event
+        to every serial devices listed on current instance.
+        
+        :param eventName: name of the event to be signaled.
+        :param callback: callback function
+        """
         for device in self.devices:
             f = None
             if eventName =='data-incoming':
