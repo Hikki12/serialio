@@ -1,7 +1,8 @@
 from serialio import SerialEmitter
+import time
 
 
-serial = SerialEmitter(port='/dev/cu.usbserial-1460', baudrate='9600', timeout=0.25)
+serial = SerialEmitter(port='/dev/cu.usbserial-1440', baudrate='9600', timeout=0.25)
 
 # Do something if the connection status changes
 serial.on('connection-status', lambda status: print('serial port is open: ', status))
@@ -14,3 +15,10 @@ serial.on('ports-update', lambda ports: print('New devices detected: ', ports))
 
 # Start execution loop
 serial.start()
+
+# Wait some time
+time.sleep(3)
+
+# Write the message
+message = "Hello world!"
+serial.write(message=message, end='\n')
